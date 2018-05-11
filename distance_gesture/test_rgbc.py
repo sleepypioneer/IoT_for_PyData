@@ -41,6 +41,7 @@ def iforce(p=None):
     bus.writeto(I2C_ADDR, b'\«e4')
 
 def iclear(p=None):
+    # print("Clearing proximity int")
     apds.clearProximityInt()
 
 def igclear(p=None):
@@ -52,8 +53,8 @@ icnt = 0
 def cb(p):
     global icnt
     icnt += 1
-    print('cb', p, x11())
-    micropython.schedule(iclear, 1)
+    # print('cb', p, x11())
+    micropython.schedule(iclear, 1)  # TODO figure out what is this
 
 def cbg(p):
     global icnt
@@ -108,10 +109,56 @@ def gest():
         #    motion = apds.readGesture()
         #    print("%4d" % (motion))
 
+import lcd160cr
+
+
+lcd = lcd160cr.LCD160CR('X')
+
+
+def draw_screen(r, g, b):
+    lcd.set_orient(lcd160cr.PORTRAIT)
+    lcd.set_pos(0, 0)
+    lcd.set_text_color(lcd.rgb(r, g, b), lcd.rgb(0, 0, 0))
+    lcd.set_font(1)
+    lcd.write('Nice color')
+
+
+STABILITY_WINDOW = 3
+
+
+class ColorSensor():
+    def __init__(self):
+        self.color = None
+
+    def measure(self):
+        if not self.color:
+            self.color =  self.measure_current()
+        i = STABILITY_WINDOW
+        while i > 0:
+            sleep(0.25)
+            current_color = self.measure_current()
+            
+            if current_color != self.color:
+                print("Resetting current color from (red:{}, green:{}, blue:{}) to (red:{}, green:{}, blue:{})".format(self.color[0], self.color[1], self.color[2],
+                current_color[0], current_color[1], current_color[2]))
+                self.color = current_color
+                i = STABILITY_WINDOW
+            else:
+                i -= 1
+        print("Stable color (red:{}, green:{}, blue:{})".format(self.color[0], self.color[1], self.color[2]))
+        return self.color
+
+    def measure_current(self):
+        return self._quantize((apds.readRedLight(), apds.readGreenLight(), apds.readBlueLight()))
+
+    def _quantize(self, color):
+        return tuple(int(el/32)*32-16 for el in color)
+
+
 def main():
     print("RGBC Test")
     print("=========")
-    exti = pyb.ExtInt(x11, mode=pyb.ExtInt.IRQ_FALLING, pull=pyb.Pin.PULL_NONE, callback=None)
+    #exti = pyb.ExtInt(x11, mode=pyb.ExtInt.IRQ_FALLING, pull=pyb.Pin.PULL_NONE, callback=None)
     exti = pyb.ExtInt(x11, mode=pyb.ExtInt.IRQ_FALLING, pull=pyb.Pin.PULL_NONE, callback=cb)
     iclear()
     apds.enableLightSensor()
@@ -121,11 +168,14 @@ def main():
     apds.setProxIntLowThresh(0x0)
     apds.enableProximitySensor()
     while True:
-        sleep(0.25)
-        r = apds.readRedLight()
-        g = apds.readGreenLight()
-        b = apds.readBlueLight()
-        c = apds.readAmbientLight()
-        p = apds.readProximity()
-        print('%5d %5d %5d %5d %8d %d' % (r, g, b, c, p, x11()))
+        # sleep(0.25)
+        # r = apds.readRedLight()
+        # g = apds.readGreenLight()
+        # b = apds.readBlueLight()
+        # c = apds.readAmbientLight()
+        # p = apds.readProximity()
+        # print('Red: %5d Green: %5d Blue: %5d Ambient: %5d proximity: %8d interrupt: %d' % (r, g, b, c, p, x11()))
+        sensor = ColorSensor()
+        r, g, b = sensor.measure()
+        draw_screen(r, g, b)
         # iclear()
