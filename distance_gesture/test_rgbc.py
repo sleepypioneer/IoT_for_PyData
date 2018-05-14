@@ -116,11 +116,21 @@ lcd = lcd160cr.LCD160CR('X')
 
 
 def draw_screen(r, g, b):
+    lcd_x = int(lcd.w/2)
+    lcd_y = int(lcd.h/2)
+    rect_height = 50
+    rect_width = 50
+    lcd.set_pen(lcd.rgb(0, 0, 0), lcd.rgb(0, 0, 0))
+    lcd.erase()
     lcd.set_orient(lcd160cr.PORTRAIT)
     lcd.set_pos(0, 0)
     lcd.set_text_color(lcd.rgb(r, g, b), lcd.rgb(0, 0, 0))
     lcd.set_font(1)
     lcd.write('Nice color')
+    lcd.set_pen(lcd.rgb(r, g, b), lcd.rgb(r, g, b))
+    lcd.rect(lcd_x-50, lcd_y, rect_height, rect_width)
+    lcd.set_pen(lcd.rgb(apds.readRedLight(), apds.readGreenLight(), apds.readBlueLight()), lcd.rgb(apds.readRedLight(), apds.readGreenLight(), apds.readBlueLight()))
+    lcd.rect((lcd_x), (lcd_y), rect_height, rect_width)
 
 
 STABILITY_WINDOW = 3
@@ -137,7 +147,7 @@ class ColorSensor():
         while i > 0:
             sleep(0.25)
             current_color = self.measure_current()
-            
+
             if current_color != self.color:
                 print("Resetting current color from (red:{}, green:{}, blue:{}) to (red:{}, green:{}, blue:{})".format(self.color[0], self.color[1], self.color[2],
                 current_color[0], current_color[1], current_color[2]))
