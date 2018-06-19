@@ -4,7 +4,7 @@ from time import sleep
 from machine import Pin, I2C
 
 from apds9960.const import *
-from apds9960 import uAPDS9960 as APDS9960
+from apds9960.device import uAPDS9960 as APDS9960
 
 import micropython
 
@@ -110,9 +110,38 @@ def gest():
         #    print("%4d" % (motion))
 
 import lcd160cr
+import webcolors
 
 
 lcd = lcd160cr.LCD160CR('X')
+
+def color_name(r,g, b):
+    try:
+        return webcolors.rgb_to_name((r, g, b))
+    except ValueError:
+        return 'UNKWOWN'
+
+
+CARD_COLORS = {
+    'red': (255, 0 , 0),
+    'green': (0, 255, 0),
+    'blue': (0, 0 , 255),
+    'yellow': (255, 255, 0),
+}
+
+
+def closest_color(r, g, b):
+    diff_to_card_colors = [(color_distance((r, g, b), CARD_COLORS[basic]), basic) for basic in CARD_COLORS]
+    diff_to_card_colors.sort()
+    distance, color_name = diff_to_card_colors[0]
+    print("Closest color name: {}, distance: {}".format(color_name, distance))
+    return color_name
+
+
+def color_distance(a, b):
+    r1, g1, b1 = a
+    r2, g2, b2 = b
+    return ((r2-r1)*0.30)**2 + ((g2-g1)*0.59)**2 + ((b2-b1)*0.11)**2
 
 
 def draw_screen(r, g, b):
@@ -126,7 +155,8 @@ def draw_screen(r, g, b):
     lcd.set_pos(0, 0)
     lcd.set_text_color(lcd.rgb(r, g, b), lcd.rgb(0, 0, 0))
     lcd.set_font(1)
-    lcd.write('Nice color')
+    lcd.write('Nice color ... ')
+    lcd.write(closest_color(r, g, b))
     lcd.set_pen(lcd.rgb(r, g, b), lcd.rgb(r, g, b))
     lcd.rect(lcd_x-50, lcd_y, rect_height, rect_width)
     lcd.set_pen(lcd.rgb(apds.readRedLight(), apds.readGreenLight(), apds.readBlueLight()), lcd.rgb(apds.readRedLight(), apds.readGreenLight(), apds.readBlueLight()))
@@ -178,14 +208,14 @@ def main():
     apds.setProxIntLowThresh(0x0)
     apds.enableProximitySensor()
     while True:
-        # sleep(0.25)
-        # r = apds.readRedLight()
-        # g = apds.readGreenLight()
-        # b = apds.readBlueLight()
-        # c = apds.readAmbientLight()
-        # p = apds.readProximity()
-        # print('Red: %5d Green: %5d Blue: %5d Ambient: %5d proximity: %8d interrupt: %d' % (r, g, b, c, p, x11()))
+        sleep(0.25)
+        r = apds.readRedLight()
+        g = apds.readGreenLight()
+        b = apds.readBlueLight()
+        c = apds.readAmbientLight()
+        p = apds.readProximity()
+        print('Red: %5d Green: %5d Blue: %5d Ambient: %5d proximity: %8d interrupt: %d' % (r, g, b, c, p, x11()))
         sensor = ColorSensor()
-        r, g, b = sensor.measure()
+        # r, g, b = sensor.measure()
         draw_screen(r, g, b)
         # iclear()
