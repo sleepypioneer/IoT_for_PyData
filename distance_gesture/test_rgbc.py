@@ -110,9 +110,16 @@ def gest():
         #    print("%4d" % (motion))
 
 import lcd160cr
+import webcolors
 
 
 lcd = lcd160cr.LCD160CR('X')
+
+def color_name(r,g, b):
+    try:
+        return webcolors.rgb_to_name((r, g, b))
+    except ValueError:
+        return 'UNKWOWN'
 
 
 def draw_screen(r, g, b):
