@@ -4,7 +4,7 @@ from time import sleep
 from machine import Pin, I2C
 
 from apds9960.const import *
-from apds9960 import uAPDS9960 as APDS9960
+from apds9960.device import uAPDS9960 as APDS9960
 
 import micropython
 
@@ -178,14 +178,14 @@ def main():
     apds.setProxIntLowThresh(0x0)
     apds.enableProximitySensor()
     while True:
-        # sleep(0.25)
-        # r = apds.readRedLight()
-        # g = apds.readGreenLight()
-        # b = apds.readBlueLight()
-        # c = apds.readAmbientLight()
-        # p = apds.readProximity()
-        # print('Red: %5d Green: %5d Blue: %5d Ambient: %5d proximity: %8d interrupt: %d' % (r, g, b, c, p, x11()))
+        sleep(0.25)
+        r = apds.readRedLight()
+        g = apds.readGreenLight()
+        b = apds.readBlueLight()
+        c = apds.readAmbientLight()
+        p = apds.readProximity()
+        print('Red: %5d Green: %5d Blue: %5d Ambient: %5d proximity: %8d interrupt: %d' % (r, g, b, c, p, x11()))
         sensor = ColorSensor()
-        r, g, b = sensor.measure()
+        # r, g, b = sensor.measure()
         draw_screen(r, g, b)
         # iclear()
