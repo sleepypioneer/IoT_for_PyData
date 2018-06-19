@@ -122,6 +122,28 @@ def color_name(r,g, b):
         return 'UNKWOWN'
 
 
+CARD_COLORS = {
+    'red': (255, 0 , 0),
+    'green': (0, 255, 0),
+    'blue': (0, 0 , 255),
+    'yellow': (255, 255, 0),
+}
+
+
+def closest_color(r, g, b):
+    diff_to_card_colors = [(color_distance((r, g, b), CARD_COLORS[basic]), basic) for basic in CARD_COLORS]
+    diff_to_card_colors.sort()
+    distance, color_name = diff_to_card_colors[0]
+    print("Closest color name: {}, distance: {}".format(color_name, distance))
+    return color_name
+
+
+def color_distance(a, b):
+    r1, g1, b1 = a
+    r2, g2, b2 = b
+    return ((r2-r1)*0.30)**2 + ((g2-g1)*0.59)**2 + ((b2-b1)*0.11)**2
+
+
 def draw_screen(r, g, b):
     lcd_x = int(lcd.w/2)
     lcd_y = int(lcd.h/2)
@@ -133,7 +155,8 @@ def draw_screen(r, g, b):
     lcd.set_pos(0, 0)
     lcd.set_text_color(lcd.rgb(r, g, b), lcd.rgb(0, 0, 0))
     lcd.set_font(1)
-    lcd.write('Nice color')
+    lcd.write('Nice color ... ')
+    lcd.write(closest_color(r, g, b))
     lcd.set_pen(lcd.rgb(r, g, b), lcd.rgb(r, g, b))
     lcd.rect(lcd_x-50, lcd_y, rect_height, rect_width)
     lcd.set_pen(lcd.rgb(apds.readRedLight(), apds.readGreenLight(), apds.readBlueLight()), lcd.rgb(apds.readRedLight(), apds.readGreenLight(), apds.readBlueLight()))
